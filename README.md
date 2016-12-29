@@ -54,7 +54,7 @@ public class User {
 We can deserialize this from a json string very easily:
 
 ```java
-User jan = Deserialize.fromJson(User.class, "{\"id\": "1234", \"name\": \"Jan\", \"age\": 42}");
+User jan = Deserialize.fromJson(User.class, "{\"id\": \"1234\", \"name\": \"Jan\", \"age\": 42}");
 ```
 
 Janson does not require any special annotations when parsing data, and by default json is serialized into the class in a 'best fit' type of way. This means that missing fields are ignored, generic types are ignored, and nothing is hidden. This also means that without some guidance from the programmer janson does not do a good job at correctly fitting the data to classes.
