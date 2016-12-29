@@ -2,8 +2,12 @@ import dk.jankjr.janson.Deserialize;
 import dk.jankjr.janson.Serialize;
 import dk.jankjr.janson.annotations.*;
 import dk.jankjr.janson.keytypes.IntegerKey;
+import dk.jankjr.janson.writers.OutputStreamWriter;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -18,7 +22,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 public class Tests {
   public static class Test1 {
-    public long a1 = 21L; public Long a2 = 42L;
+    public long a1 = 21L;
+    public Long a2 = 42L;
+    public char b1 = 'a';
+    public Character b2 = 'b';
   }
 
   public static class Test2 {
@@ -245,5 +252,29 @@ public class Tests {
   @Test
   public void handlesSerializedNames(){
     textualTest(Test14.class);
+  }
+
+
+  @Test
+  public void inputStreamWorks() {
+    String src = "{\"x\": 42}";
+    InputStream is = new ByteArrayInputStream( src.getBytes() );
+    Map obj = Deserialize.fromJson(is);
+    assertThat("x is 42", obj.get("x").equals(new BigDecimal(42)));
+  }
+
+  @Test
+  public void outputStreamWorks() {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    OutputStreamWriter writer = new OutputStreamWriter(out);
+    Serialize.toJson(new Test1(), writer);
+    writer.flush();
+
+
+    String json = new String(out.toByteArray());
+    Test1 after = Deserialize.fromJson(Test1.class, json);
+
+
+    assertThat("a1 is 21", after.a1 == 21);
   }
 }

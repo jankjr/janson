@@ -30,13 +30,13 @@ final public class Deserialize {
     return fromJson(cls, new InputStreamReader(src));
   }
   public static Map fromJson(Reader stream) {
-    return fromJson(Map.class, stream);
+    return fromJson(HashMap.class, stream);
   }
   public static Map fromJson(String src) {
     return fromJson(HashMap.class, new StringReader(src));
   }
   public static Map fromJson(InputStream src) {
-    return fromJson(Map.class, new InputStreamReader(src));
+    return fromJson(HashMap.class, new InputStreamReader(src));
   }
 
   private static <T> T parseObject(Class<T> cls, Reader stream, Field parentField) throws Exception {
@@ -159,7 +159,7 @@ final public class Deserialize {
     ValueType valTypeAnnotation = aClass.getAnnotation(ValueType.class);
 
     if(valTypeAnnotation != null){
-      Object value = parseValue(Object.class, stream, null);
+      Object value = parseValue(valTypeAnnotation.from(), stream, null);
       return valTypeAnnotation.value().newInstance().fromJson(value);
     }
     if (aClass.isEnum()){

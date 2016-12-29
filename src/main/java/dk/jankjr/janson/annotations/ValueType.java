@@ -12,4 +12,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValueType {
   Class<? extends Serializer> value();
+
+  Class from() default Object.class;
 }
