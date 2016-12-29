@@ -22,6 +22,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 public class Tests {
 
+  public static class Test0 {
+    public long x;
+  }
+
   public static class Test1 {
     public long a1 = 21L;
     public Long a2 = 42L;
@@ -156,6 +160,11 @@ public class Tests {
     public float foo;
   }
 
+  public static class Test18 {
+    @Hidden
+    public Integer foo;
+  }
+
   public static void textualTest(Class cls) {
     Object before = null;
     try {
@@ -266,7 +275,12 @@ public class Tests {
 
   @Test
   public void handlesSerializedNames(){
-    textualTest(Test14.class);
+    String json = Serialize.toJson(new Test14());
+    Map res = Deserialize.fromJson(json);
+    assertThat("foo is 42", res.get("foo").equals(new BigDecimal(42)));
+
+    Test14 res2 = Deserialize.fromJson(Test14.class, json);
+    assertThat("bar is 42", res2.bar == 42);
   }
 
 
@@ -275,7 +289,13 @@ public class Tests {
     String src = "{\"x\": 42}";
     InputStream is = new ByteArrayInputStream( src.getBytes() );
     Map obj = Deserialize.fromJson(is);
+
     assertThat("x is 42", obj.get("x").equals(new BigDecimal(42)));
+
+    is = new ByteArrayInputStream( src.getBytes() );
+    Test0 test0 =  Deserialize.fromJson(Test0.class, is);
+
+    assertThat("x is 42", test0.x == 42);
   }
 
   @Test
@@ -338,24 +358,54 @@ public class Tests {
   @Test( expected = RuntimeException.class )
   public void refusesToParseInvalidNull() {
     String src = "{\"foo\": nul}";
-    Map m = Deserialize.fromJson(src);
+    Deserialize.fromJson(src);
   }
 
   @Test( expected = RuntimeException.class )
   public void refusesToParseInvalidTrue() {
     String src = "{\"foo\": talse}";
-    Map m = Deserialize.fromJson(src);
+    Deserialize.fromJson(src);
   }
 
   @Test( expected = RuntimeException.class )
   public void refusesToParseInvalidFalse() {
     String src = "{\"foo\": frue}";
-    Map m = Deserialize.fromJson(src);
+    Deserialize.fromJson(src);
   }
 
   @Test( expected = RuntimeException.class )
   public void refusesToParseInvalidKeywords() {
     String src = "{\"foo\": bar}";
-    Map m = Deserialize.fromJson(src);
+    Deserialize.fromJson(src);
+  }
+
+  @Test( expected = RuntimeException.class )
+  public void badUnicde() {
+    String src = "{\"\\uabcq\": 42}";
+    Deserialize.fromJson(src);
+  }
+
+  @Test( expected = RuntimeException.class )
+  public void syntaxError() {
+    String src = "{\"foo\" 42}";
+    Deserialize.fromJson(src);
+  }
+
+
+  @Test( expected = RuntimeException.class )
+  public void badEscapeCharacter() {
+    String src = "{\"f\\oo\" 42}";
+    Deserialize.fromJson(src);
+  }
+
+  @Test
+  public void canProperlyHide() {
+    Test18 t18 = new Test18();
+    t18.foo = 42;
+    String json = Serialize.toJson(t18);
+
+    Test18 res = Deserialize.fromJson(Test18.class, json);
+
+    assertThat("foo is null", res.foo == null);
   }
 }

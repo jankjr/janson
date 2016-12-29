@@ -67,17 +67,24 @@ final public class Serialize {
         }
       }
       if(fields.size() != 0){
-        writeKeyValue(fields.get(0).get(obj), stringBuffer, fields.get(0).getName(), fields.get(0));
+        writeKeyValue(fields.get(0).get(obj), stringBuffer, getFieldName(fields.get(0)), fields.get(0));
       }
       for (int i = 1 ; i < fields.size() ; i ++){
         stringBuffer.append(",");
         Field f = fields.get(i);
-        writeKeyValue(f.get(obj), stringBuffer, f.getName(), fields.get(i));
+        writeKeyValue(f.get(obj), stringBuffer, getFieldName(f), fields.get(i));
       }
     }
 
     stringBuffer.append("}");
     return stringBuffer;
+  }
+
+  private static String getFieldName(Field f) {
+    if(f.getAnnotation(SerializedName.class) != null){
+      return f.getAnnotation(SerializedName.class).value();
+    }
+    return f.getName();
   }
 
   private static void mapToJson(Map obj, Writer stringBuffer, Field parent) throws Exception {

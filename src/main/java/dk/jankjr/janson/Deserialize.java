@@ -34,10 +34,10 @@ final public class Deserialize {
     return fromJson(HashMap.class, stream);
   }
   public static Map fromJson(String src) {
-    return fromJson(HashMap.class, new StringReader(src));
+    return fromJson(new StringReader(src));
   }
   public static Map fromJson(InputStream src) {
-    return fromJson(HashMap.class, new InputStreamReader(src));
+    return fromJson(new InputStreamReader(src));
   }
 
   private static <T> T parseObject(Class<T> cls, Reader stream, Field parentField) throws Exception {
@@ -98,8 +98,9 @@ final public class Deserialize {
       if(!doesImplement(cls, Map.class)){
         thisField = cls.getField(fieldName);
 
-        if(thisField.getAnnotation(Hidden.class) != null){
-          hidden = thisField.getAnnotation(Hidden.class).deserization() == Visibility.HIDDEN;
+        Hidden hiddenAnnotation = thisField.getAnnotation(Hidden.class);
+        if(hiddenAnnotation != null){
+          hidden = hiddenAnnotation.deserization() == Visibility.HIDDEN;
         }
 
         fieldType = thisField.getType();
@@ -243,8 +244,9 @@ final public class Deserialize {
       return parseBigFloat(stream);
     } else if ('t' == stream.peek() || 'f' == stream.peek()){
       return parseBoolean(stream);
+    } else {
+      throw new RuntimeException("Invalid json format");
     }
-    return fail("Invalid json format");
   }
 
   private static boolean advanceIfNull(Reader stream) throws IOException {
@@ -252,7 +254,7 @@ final public class Deserialize {
       if(Reader.advanceIf(stream, 'u') && Reader.advanceIf(stream, 'l') && Reader.advanceIf(stream, 'l')){
         return true;
       }
-      return fail("Invalid json format");
+      throw new RuntimeException("Invalid json format");
     }
     return false;
   }
@@ -329,17 +331,12 @@ final public class Deserialize {
       if(Reader.advanceIf(stream, 'r') && Reader.advanceIf(stream, 'u') && Reader.advanceIf(stream, 'e')) {
         return Boolean.TRUE;
       }
-      return fail("Invalid json input");
+    } else if(Reader.advanceIf(stream, 'f')) {
+      if((Reader.advanceIf(stream, 'a') && Reader.advanceIf(stream, 'l') && Reader.advanceIf(stream, 's') && Reader.advanceIf(stream, 'e'))){
+        return Boolean.FALSE;
+      }
     }
-
-    if(Reader.advanceIf(stream, 'f') && (Reader.advanceIf(stream, 'a') && Reader.advanceIf(stream, 'l') && Reader.advanceIf(stream, 's') && Reader.advanceIf(stream, 'e'))) {
-      return Boolean.FALSE;
-    }
-    return fail("Invalid json input");
-  }
-
-  private static Boolean fail(String message) {
-    throw new RuntimeException(message);
+    throw new RuntimeException("Invalid json input");
   }
 
   private static String parseString(Reader stream) throws IOException {
@@ -367,7 +364,7 @@ final public class Deserialize {
           char codePoint = (char) ((c1 << 12) | (c2 << 8) | (c3 << 4) | c4);
           buff.append(codePoint);
         } else {
-          fail("Invalid json format");
+          throw new RuntimeException("Invalid json format");
         }
       } else {
         buff.appendCodePoint(c);
