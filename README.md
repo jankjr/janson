@@ -108,14 +108,22 @@ public class User {
 
 #### @AttributeName
 
-Lastly sometimes the fields of the input json objects should not match the fields in the java objects.
-
+Lastly sometimes the fields of the input json objects differ from the field names on the Java class:
 
 ```java
 public class User {
   ...
   @AttributeName("favMusic")
   public String favoriteMusic;
+}
+```
+
+In this case a json field would serialize to favoriteMusic if and only if it was called `"favMusic"`:
+
+```json
+{
+  ...
+  "favMusic": "...",
 }
 ```
 
