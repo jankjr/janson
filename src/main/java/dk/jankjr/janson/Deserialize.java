@@ -243,45 +243,46 @@ final public class Deserialize {
       return parseBigFloat(stream);
     } else if ('t' == stream.peek() || 'f' == stream.peek()){
       return parseBoolean(stream);
-    } else if ('n' == stream.peek()){
-      return parseNull(stream);
-    }
-    return fail("Invalid json format");
-  }
-
-  private static Object parseNull(Reader stream) throws IOException {
-    if(advanceIfNull(stream)) {
-      return null;
     }
     return fail("Invalid json format");
   }
 
   private static boolean advanceIfNull(Reader stream) throws IOException {
-    return Reader.advanceIf(stream, 'n') && Reader.advanceIf(stream, 'u') && Reader.advanceIf(stream, 'l') && Reader.advanceIf(stream, 'l');
+    if(Reader.advanceIf(stream, 'n')) {
+      if(Reader.advanceIf(stream, 'u') && Reader.advanceIf(stream, 'l') && Reader.advanceIf(stream, 'l')){
+        return true;
+      }
+      return fail("Invalid json format");
+    }
+    return false;
   }
 
 
   private static BigDecimal parseBigFloat(Reader stream) throws IOException {
     StringBuffer buff = new StringBuffer();
-    if(Reader.advanceIf(stream, '-')){
-      buff.append("-");
-    }
-    readInteger(stream, buff);
+    readSignedInt(stream, buff);
     if('.' == stream.peek()) {
       buff.append(stream.next());
       readInteger(stream, buff);
     }
 
-    if('e' == stream.peek() && 'E' == stream.peek()) {
-      buff.append(stream.next());
-      readInteger(stream, buff);
-    }
-    if('.' == stream.peek()) {
-      buff.append(stream.next());
-      readInteger(stream, buff);
-    }
+    readExp(stream, buff);
 
     return new BigDecimal(buff.toString());
+  }
+
+  private static void readExp(Reader stream, StringBuffer buff) throws IOException {
+    if('e' == stream.peek() || 'E' == stream.peek()) {
+      buff.append(stream.next());
+      readSignedInt(stream, buff);
+    }
+  }
+
+  private static void readSignedInt(Reader stream, StringBuffer buff) throws IOException {
+    if(stream.peek() == '-' || stream.peek() == '+'){
+      buff.append(stream.next());
+    }
+    readInteger(stream, buff);
   }
 
   private static void readInteger(Reader stream, StringBuffer buff) throws IOException {
@@ -290,14 +291,8 @@ final public class Deserialize {
 
   private static BigInteger parseBigInt(Reader stream) throws IOException {
     StringBuffer buff = new StringBuffer();
-    if(Reader.advanceIf(stream, '-')){
-      buff.append("-");
-    }
-    readInteger(stream, buff);
-    if('e' == stream.peek() && 'E' == stream.peek()) {
-      buff.append(stream.next());
-      readInteger(stream, buff);
-    }
+    readSignedInt(stream, buff);
+    readExp(stream, buff);
     return new BigInteger(buff.toString());
   }
 

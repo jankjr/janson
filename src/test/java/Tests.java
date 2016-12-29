@@ -152,6 +152,10 @@ public class Tests {
     public Test15Enum foo = Test15Enum.FOO;
   }
 
+  public static class Test17 {
+    public float foo;
+  }
+
   public static void textualTest(Class cls) {
     Object before = null;
     try {
@@ -304,5 +308,54 @@ public class Tests {
     Test16 test162 = Deserialize.fromJson(Test16.class, src);
 
     assertThat("equals", test16.foo == test162.foo);
+  }
+
+  @Test
+  public void parsingExponentialsWork() {
+    String src = "{\"foo\": 10e+10, \"bar\": 1e-10, \"baz\": 1e10}";
+    Map m = Deserialize.fromJson(src);
+    assertThat("is equal to the same", m.get("foo").equals(new BigDecimal("10e10")));
+    assertThat("is equal to the same", m.get("bar").equals(new BigDecimal("1e-10")));
+  }
+
+
+  @Test
+  public void parsingFloatExponentialsWork() {
+    String src = "{\"foo\": 2.5e4}";
+    Test17 m = Deserialize.fromJson(Test17.class, src);
+
+    assertThat("Correct result", m.foo == 2.5e4f);
+  }
+
+  @Test
+  public void parseNull() {
+    String src = "{\"foo\": null}";
+    Map m = Deserialize.fromJson(src);
+    assertThat("is equal to the same", m.get("foo") == null);
+  }
+
+
+  @Test( expected = RuntimeException.class )
+  public void refusesToParseInvalidNull() {
+    String src = "{\"foo\": nul}";
+    Map m = Deserialize.fromJson(src);
+  }
+
+  @Test( expected = RuntimeException.class )
+  public void refusesToParseInvalidTrue() {
+    String src = "{\"foo\": talse}";
+    Map m = Deserialize.fromJson(src);
+  }
+
+  @Test( expected = RuntimeException.class )
+  public void refusesToParseInvalidFalse() {
+    String src = "{\"foo\": frue}";
+    Map m = Deserialize.fromJson(src);
+  }
+
+  @Test( expected = RuntimeException.class )
+  public void refusesToParseInvalidKeywords() {
+    String src = "{\"foo\": bar}";
+    Map m = Deserialize.fromJson(src);
   }
 }
