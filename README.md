@@ -226,11 +226,19 @@ Keep in mind that janson will deserialize numbers to best fit, which means that 
 
 ### Enums
 
-Enums are a useful feature in Java, and janson can of course also map json strings directly to java enums.
+Enums are a useful feature in Java, and janson will happily map json strings directly to Enum instances.
 
-The default behavior will map enums directly by name. This means that the enum class contains an enum called CAT, the only the string CAT will create the enum.
+The default behavior will map enums directly by name. This means that an enum definition:
 
-It is however also possible implement more domain specific mapping by marking the Enum class with the @EnumType annotation.
+```java
+public enum AnimalType {
+  CAT, DOG, BIRD
+}
+```
+
+Would only accept the json strings "CAT", "DOG", "BIRD". If none of the 
+
+Sometimes it is usefull to have a more domain specific mapping, by marking the Enum class with the @EnumType annotation.
 
 ```java
 @EnumType(value = EvenOrOdd.Serialization.class, from = Integer.class)
@@ -250,5 +258,5 @@ public enum EvenOrOdd {
 }
 ```
 
-Not specifying a `from` attribute will make the `Deserializer` use the closest fits the source. Which for numbers would be a `BigDecimal`, this behavior mimics ValueTypes.
+Note: specifying a `from` attribute will make the `Deserialize` use the closest fits the source. Which for numbers would be a `BigDecimal`, this behavior mirrors `ValueType`.
 
