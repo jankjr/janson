@@ -26,37 +26,33 @@ public class InputStreamReader implements Reader {
   public InputStreamReader(InputStream inp) {
     this(inp, 1 << 12);
   }
-  private void readSomeMore() {
+  private void readSomeMore() throws IOException {
     if(positionInBuffer < buffer.length){
       return;
     }
-    try {
-      inp.read(buffer);
-      positionInBuffer = 0;
-    } catch (IOException e) {
-      e.printStackTrace();
-      throw new RuntimeException(e);
-    }
+    inp.read(buffer);
+    positionInBuffer = 0;
+
   }
 
-  public int nextCodepoint() {
+  public int nextCodepoint() throws IOException {
     readSomeMore();
     int chr = Character.codePointAt(buffer, positionInBuffer);
     positionInBuffer += Character.charCount(chr);
     return chr;
   }
 
-  public char next() {
+  public char next() throws IOException {
     readSomeMore();
     return buffer[positionInBuffer++];
   }
 
-  public char peek() {
+  public char peek() throws IOException {
     readSomeMore();
     return buffer[positionInBuffer];
   }
 
-  public void advance() {
+  public void advance() throws IOException {
     readSomeMore();
     positionInBuffer ++;
   }

@@ -14,38 +14,22 @@ public class OutputStreamWriter implements Writer{
     this.out = new BufferedWriter(new java.io.OutputStreamWriter(out));
   }
 
-  public void flush(){
-    try {
-      out.flush();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  public void flush() throws IOException {
+    out.flush();
   }
 
   @Override
-  public void append(String src) {
-    try {
-      out.write(src);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  public void append(String src) throws IOException {
+    out.write(src);
   }
 
   @Override
-  public void append(int src) {
-    try {
-      out.write(Integer.toString(src));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  public void append(int src) throws IOException {
+    out.write(Integer.toString(src));
   }
 
   @Override
-  public void appendCodePoint(int src) {
-    try {
-      out.write(src);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  public void appendCodePoint(int src) throws IOException {
+    out.write(src);
   }
 }

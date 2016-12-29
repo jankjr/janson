@@ -4,6 +4,7 @@ import dk.jankjr.janson.annotations.*;
 import dk.jankjr.janson.writers.StringBufferWriter;
 import dk.jankjr.janson.writers.Writer;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -11,7 +12,7 @@ import java.util.*;
  * Created by jankjr on 23/12/2016.
  */
 final public class Serialize {
-  static private void string(String original, Writer buff){
+  static private void string(String original, Writer buff) throws IOException {
     buff.append("\"");
     for (int i = 0 ; i < original.length() ;){
       int codePoint = original.codePointAt(i);
@@ -37,17 +38,18 @@ final public class Serialize {
 
   static public String toJson(Object obj){
     StringBufferWriter writer = new StringBufferWriter();
-    toJson(obj, writer);
-    return writer.getBuffer().toString();
-  }
-
-  static public Writer toJson(Object obj, Writer writer){
     try {
-      objectToJson(obj, writer, null);
-      return writer;
+      toJson(obj, writer);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+    return writer.getBuffer().toString();
+  }
+
+  static public Writer toJson(Object obj, Writer writer) throws Exception {
+    objectToJson(obj, writer, null);
+    return writer;
+
   }
 
   private static boolean fieldIsExposed(Field field) {return field.getAnnotation(Hidden.class) == null || field.getAnnotation(Hidden.class).deserization() == Visibility.EXPOSED;}
@@ -117,7 +119,7 @@ final public class Serialize {
 
         valueToJson(value, stringBuffer, parent);
       } else {
-        string(((Enum) o).name(), stringBuffer);
+        string(new DefaultEnumSerializer().toJson((Enum) o), stringBuffer);
       }
     }
     else if(o.getClass().getAnnotation(ValueType.class) != null) {

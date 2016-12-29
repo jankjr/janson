@@ -21,6 +21,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Created by jankjr on 23/12/2016.
  */
 public class Tests {
+
   public static class Test1 {
     public long a1 = 21L;
     public Long a2 = 42L;
@@ -139,6 +140,16 @@ public class Tests {
   public static class Test14 {
     @SerializedName("foo")
     public long bar = 42;
+  }
+
+  public static enum Test15Enum {
+    FOO
+  }
+  public static class Test15 {
+    public Test15Enum foo;
+  }
+  public static class Test16 {
+    public Test15Enum foo = Test15Enum.FOO;
   }
 
   public static void textualTest(Class cls) {
@@ -264,7 +275,7 @@ public class Tests {
   }
 
   @Test
-  public void outputStreamWorks() {
+  public void outputStreamWorks() throws Exception {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     OutputStreamWriter writer = new OutputStreamWriter(out);
     Serialize.toJson(new Test1(), writer);
@@ -276,5 +287,22 @@ public class Tests {
 
 
     assertThat("a1 is 21", after.a1 == 21);
+  }
+
+
+  @Test(expected = RuntimeException.class)
+  public void badEnum() {
+    String src = "{\"foo\": \"BAR\"}";
+    Deserialize.fromJson(Test15.class, src);
+  }
+
+  @Test
+  public void standardEnum() {
+    Test16 test16 = new Test16();
+    String src = Serialize.toJson(test16);
+
+    Test16 test162 = Deserialize.fromJson(Test16.class, src);
+
+    assertThat("equals", test16.foo == test162.foo);
   }
 }

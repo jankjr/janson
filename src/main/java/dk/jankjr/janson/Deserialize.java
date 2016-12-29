@@ -5,6 +5,7 @@ import dk.jankjr.janson.readers.InputStreamReader;
 import dk.jankjr.janson.readers.Reader;
 import dk.jankjr.janson.readers.StringReader;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -248,19 +249,19 @@ final public class Deserialize {
     return fail("Invalid json format");
   }
 
-  private static Object parseNull(Reader stream) {
+  private static Object parseNull(Reader stream) throws IOException {
     if(advanceIfNull(stream)) {
       return null;
     }
     return fail("Invalid json format");
   }
 
-  private static boolean advanceIfNull(Reader stream){
+  private static boolean advanceIfNull(Reader stream) throws IOException {
     return Reader.advanceIf(stream, 'n') && Reader.advanceIf(stream, 'u') && Reader.advanceIf(stream, 'l') && Reader.advanceIf(stream, 'l');
   }
 
 
-  private static BigDecimal parseBigFloat(Reader stream) {
+  private static BigDecimal parseBigFloat(Reader stream) throws IOException {
     StringBuffer buff = new StringBuffer();
     if(Reader.advanceIf(stream, '-')){
       buff.append("-");
@@ -283,11 +284,11 @@ final public class Deserialize {
     return new BigDecimal(buff.toString());
   }
 
-  private static void readInteger(Reader stream, StringBuffer buff) {
+  private static void readInteger(Reader stream, StringBuffer buff) throws IOException {
     while(Reader.isDigit(stream)) buff.append(stream.next());
   }
 
-  private static BigInteger parseBigInt(Reader stream) {
+  private static BigInteger parseBigInt(Reader stream) throws IOException {
     StringBuffer buff = new StringBuffer();
     if(Reader.advanceIf(stream, '-')){
       buff.append("-");
@@ -300,18 +301,18 @@ final public class Deserialize {
     return new BigInteger(buff.toString());
   }
 
-  private static int parseInteger(Reader stream) {
+  private static int parseInteger(Reader stream) throws IOException {
     int value = 0;
     while(Reader.isDigit(stream)){
       value = value * 10 + (stream.next() - '0');
     }
     return value;
   }
-  private static double parseSign(Reader stream) {
+  private static double parseSign(Reader stream) throws IOException {
     if(Reader.advanceIf(stream, '-')) return -1.0;
     return 1.0;
   }
-  private static double parseFloat(Reader stream) {
+  private static double parseFloat(Reader stream) throws IOException {
     double sign = parseSign(stream);
     double total = parseInteger(stream);
     if(Reader.advanceIf(stream, '.')){
@@ -328,7 +329,7 @@ final public class Deserialize {
     return total;
   }
 
-  private static Boolean parseBoolean(Reader stream) {
+  private static Boolean parseBoolean(Reader stream) throws IOException {
     if (Reader.advanceIf(stream, 't')) {
       if(Reader.advanceIf(stream, 'r') && Reader.advanceIf(stream, 'u') && Reader.advanceIf(stream, 'e')) {
         return Boolean.TRUE;
@@ -346,7 +347,7 @@ final public class Deserialize {
     throw new RuntimeException(message);
   }
 
-  private static String parseString(Reader stream) {
+  private static String parseString(Reader stream) throws IOException {
     Reader.failIfNot(stream, '"');
     StringBuffer buff = new StringBuffer();
     while(true){
