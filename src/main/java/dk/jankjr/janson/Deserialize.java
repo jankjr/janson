@@ -156,7 +156,9 @@ final public class Deserialize {
 
 
   private static Object parseValue(Class<?> aClass, Reader stream, Field parent) throws Exception {
-    if(advanceIfNull(stream)) return null;
+    if(parseString(stream, "null")) {
+      return null;
+    }
 
     ValueType valTypeAnnotation = aClass.getAnnotation(ValueType.class);
 
@@ -236,27 +238,25 @@ final public class Deserialize {
   private static Object parseValueClassLess(Reader stream) throws Exception {
     if(stream.peek() == '"'){
       return parseString(stream);
-    } else if (stream.peek() == '{'){
+    }
+
+    if (stream.peek() == '{'){
       return parseObject(HashMap.class, stream, null);
-    } else if (stream.peek() == '['){
+    }
+
+    if (stream.peek() == '['){
       return parseList(ArrayList.class, stream, null);
-    } else if (stream.peek() == '-' || Reader.isDigit(stream)){
+    }
+
+    if (stream.peek() == '-' || Reader.isDigit(stream)){
       return parseBigFloat(stream);
-    } else if ('t' == stream.peek() || 'f' == stream.peek()){
+    }
+
+    if ('t' == stream.peek() || 'f' == stream.peek()){
       return parseBoolean(stream);
     } else {
       throw new RuntimeException("Invalid json format");
     }
-  }
-
-  private static boolean advanceIfNull(Reader stream) throws IOException {
-    if(Reader.advanceIf(stream, 'n')) {
-      if(Reader.advanceIf(stream, 'u') && Reader.advanceIf(stream, 'l') && Reader.advanceIf(stream, 'l')){
-        return true;
-      }
-      throw new RuntimeException("Invalid json format");
-    }
-    return false;
   }
 
 
@@ -326,17 +326,20 @@ final public class Deserialize {
     return total;
   }
 
-  private static Boolean parseBoolean(Reader stream) throws IOException {
-    if (Reader.advanceIf(stream, 't')) {
-      if(Reader.advanceIf(stream, 'r') && Reader.advanceIf(stream, 'u') && Reader.advanceIf(stream, 'e')) {
-        return Boolean.TRUE;
-      }
-    } else if(Reader.advanceIf(stream, 'f')) {
-      if((Reader.advanceIf(stream, 'a') && Reader.advanceIf(stream, 'l') && Reader.advanceIf(stream, 's') && Reader.advanceIf(stream, 'e'))){
-        return Boolean.FALSE;
+  private static boolean parseString(Reader stream, String str) throws IOException {
+    if (!Reader.advanceIf(stream, str.charAt(0))){
+      return false;
+    }
+    for(int i = 1 ; i < str.length() ; i ++){
+      if(!Reader.advanceIf(stream, str.charAt(i))) {
+        throw new RuntimeException("Invalid Json Input");
       }
     }
-    throw new RuntimeException("Invalid json input");
+    return true;
+  }
+
+  private static Boolean parseBoolean(Reader stream) throws IOException {
+    return parseString(stream, "true") || !parseString(stream, "false");
   }
 
   private static String parseString(Reader stream) throws IOException {

@@ -36,13 +36,9 @@ final public class Serialize {
     buff.append("\"");
   }
 
-  static public String toJson(Object obj){
+  static public String toJson(Object obj) throws Exception {
     StringBufferWriter writer = new StringBufferWriter();
-    try {
-      toJson(obj, writer);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    toJson(obj, writer);
     return writer.getBuffer().toString();
   }
 

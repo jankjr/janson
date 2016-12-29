@@ -172,7 +172,12 @@ public class Tests {
     } catch (InstantiationException | IllegalAccessException e) {
       throw new RuntimeException(e);
     }
-    String jsonBefore = Serialize.toJson(before);
+    String jsonBefore = null;
+    try {
+      jsonBefore = Serialize.toJson(before);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
     Object after = Deserialize.fromJson(cls, jsonBefore);
     try {
       assertThat("They are equals", DeepEquals.deepEquals(before, after));
@@ -241,7 +246,7 @@ public class Tests {
   }
 
   @Test
-  public void handlesu32(){
+  public void handlesu32() throws Exception {
     Map m = new HashMap<>();
     m.put("您好", "您好");
 
@@ -257,7 +262,7 @@ public class Tests {
   }
 
   @Test
-  public void handlesdigits(){
+  public void handlesdigits() throws Exception {
     Map m = new HashMap<>();
     m.put("a", 10.0f);
 
@@ -274,7 +279,7 @@ public class Tests {
   }
 
   @Test
-  public void handlesSerializedNames(){
+  public void handlesSerializedNames() throws Exception {
     String json = Serialize.toJson(new Test14());
     Map res = Deserialize.fromJson(json);
     assertThat("foo is 42", res.get("foo").equals(new BigDecimal(42)));
@@ -321,7 +326,7 @@ public class Tests {
   }
 
   @Test
-  public void standardEnum() {
+  public void standardEnum() throws Exception {
     Test16 test16 = new Test16();
     String src = Serialize.toJson(test16);
 
@@ -399,12 +404,13 @@ public class Tests {
   }
 
   @Test
-  public void canProperlyHide() {
+  public void canProperlyHide() throws Exception {
     Test18 t18 = new Test18();
     t18.foo = 42;
     String json = Serialize.toJson(t18);
+    assertThat("{}", json.equals("{}"));
 
-    Test18 res = Deserialize.fromJson(Test18.class, json);
+    Test18 res = Deserialize.fromJson(Test18.class, "{\"foo\": 42}");
 
     assertThat("foo is null", res.foo == null);
   }
