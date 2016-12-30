@@ -54,7 +54,7 @@
     <groupId>dk.jankjr</groupId>
     <artifactId>janson</artifactId>
     <url>https://github.com/jankjr/janson</url>
-    <version>1.1.1</version>
+    <version>1.2.1</version>
     <packaging>jar</packaging>
     <name>dk.jankjr</name>
     <description>A minimalist json serializser/deserializer that stays out of your way</description>
