@@ -1,5 +1,6 @@
 # janson
 [![Coverage Status](https://coveralls.io/repos/github/jankjr/janson/badge.svg?branch=master)](https://coveralls.io/github/jankjr/janson?branch=master)
+[![Build Status](https://travis-ci.org/jankjr/janson.svg?branch=master)](https://travis-ci.org/jankjr/janson)
 
 A minimalistic json serializer/deserializer for java that tries its best to stay out of your way.
 
