@@ -23,7 +23,6 @@ Then add the package as a dependency
 <dependency>
     <groupId>dk.jankjr</groupId>
     <artifactId>janson</artifactId>
-    <version>1.0.0</version>
 </dependency>
 ```
 
@@ -34,9 +33,9 @@ janson has two main classes, `Serialize` and `Deserialize`, these provide a `fro
 A minimalist usage would be:
 
 ```java
-Map<String, Object> obj = Deserialize.fromJson("{\"foo\": 42}");
+Map<String, Object> obj = Janson.fromJson("{\"foo\": 42}");
 
-String jsonRepresentation = Serialize.toJson(someInstance);
+String jsonRepresentation = Janson.toJson(someInstance);
 ```
 
 
@@ -55,7 +54,7 @@ public class User {
 We can deserialize this from a json string very easily:
 
 ```java
-User jan = Deserialize.fromJson(User.class, "{\"id\": \"1234\", \"name\": \"Jan\", \"age\": 42}");
+User jan = Janson.fromJson(User.class, "{\"id\": \"1234\", \"name\": \"Jan\", \"age\": 42}");
 ```
 
 Janson does not require any special annotations when parsing data, and by default json is serialized into the class in a 'best fit' type of way. This means that missing fields are ignored, generic types are ignored, and nothing is hidden. This also means that without some guidance from the programmer janson does not do a good job at correctly fitting the data to classes.
@@ -261,4 +260,4 @@ public enum OneTwoMany {
 }
 ```
 
-Note: like `ValueType`, the `from` parameter will make the `Deserialize.fromJson` use the closest fits the source. Which for numbers would be a `BigDecimal`, and maps to `HashMap`, this behavior mirrors how the `ValueType`.
+Note: like `ValueType`, the `from` parameter will make the `Janson.fromJson` use the closest fits the source. Which for numbers would be a `BigDecimal`, and maps to `HashMap`, this behavior mirrors how the `ValueType`.

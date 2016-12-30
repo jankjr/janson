@@ -1,12 +1,9 @@
 package dk.jankjr.janson;
 
 import dk.jankjr.janson.annotations.*;
-import dk.jankjr.janson.readers.InputStreamReader;
 import dk.jankjr.janson.readers.Reader;
-import dk.jankjr.janson.readers.StringReader;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -16,7 +13,7 @@ import java.util.*;
 /**
  * Created by jankjr on 23/12/2016.
  */
-final public class Deserialize {
+final class Deserialize {
   public static <T> T fromJson(Class<T> cls, Reader stream) {
     try {
       return parseObject(cls, stream, null);
@@ -24,21 +21,6 @@ final public class Deserialize {
       e.printStackTrace();
       throw new RuntimeException(e);
     }
-  }
-  public static <T> T fromJson(Class<T> cls, String src) {
-    return fromJson(cls, new StringReader(src));
-  }
-  public static <T> T fromJson(Class<T> cls, InputStream src) {
-    return fromJson(cls, new InputStreamReader(src));
-  }
-  public static Map fromJson(Reader stream) {
-    return fromJson(HashMap.class, stream);
-  }
-  public static Map fromJson(String src) {
-    return fromJson(new StringReader(src));
-  }
-  public static Map fromJson(InputStream src) {
-    return fromJson(new InputStreamReader(src));
   }
 
   private static <T> T parseObject(Class<T> cls, Reader stream, Field parentField) throws Exception {

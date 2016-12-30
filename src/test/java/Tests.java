@@ -1,5 +1,4 @@
-import dk.jankjr.janson.Deserialize;
-import dk.jankjr.janson.Serialize;
+import dk.jankjr.janson.Janson;
 import dk.jankjr.janson.annotations.*;
 import dk.jankjr.janson.keytypes.IntegerKey;
 import dk.jankjr.janson.writers.OutputStreamWriter;
@@ -174,11 +173,11 @@ public class Tests {
     }
     String jsonBefore = null;
     try {
-      jsonBefore = Serialize.toJson(before);
+      jsonBefore = Janson.toJson(before);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    Object after = Deserialize.fromJson(cls, jsonBefore);
+    Object after = Janson.fromJson(cls, jsonBefore);
     try {
       assertThat("They are equals", DeepEquals.deepEquals(before, after));
     } catch (IllegalAccessException | NoSuchFieldException e) {
@@ -231,7 +230,7 @@ public class Tests {
   @Test
   public void handlesutf8(){
     String src = "{\"p\": \"\\u0070\"}";
-    Map<String, Object> o = Deserialize.fromJson(src);
+    Map<String, Object> o = Janson.fromJson(src);
     assertThat(o.get("p"), org.hamcrest.Matchers.equalTo("p"));
   }
 
@@ -250,8 +249,8 @@ public class Tests {
     Map m = new HashMap<>();
     m.put("您好", "您好");
 
-    String src = Serialize.toJson(m);
-    Map m1 = Deserialize.fromJson(src);
+    String src = Janson.toJson(m);
+    Map m1 = Janson.fromJson(src);
 
     assertThat(m1.get("您好"), org.hamcrest.Matchers.equalTo("您好"));
   }
@@ -266,8 +265,8 @@ public class Tests {
     Map m = new HashMap<>();
     m.put("a", 10.0f);
 
-    String src = Serialize.toJson(m);
-    Map m1 = Deserialize.fromJson(src);
+    String src = Janson.toJson(m);
+    Map m1 = Janson.fromJson(src);
 
     assertThat("", ((BigDecimal) m1.get("a")).floatValue() == 10.0f);
   }
@@ -280,11 +279,11 @@ public class Tests {
 
   @Test
   public void handlesSerializedNames() throws Exception {
-    String json = Serialize.toJson(new Test14());
-    Map res = Deserialize.fromJson(json);
+    String json = Janson.toJson(new Test14());
+    Map res = Janson.fromJson(json);
     assertThat("foo is 42", res.get("foo").equals(new BigDecimal(42)));
 
-    Test14 res2 = Deserialize.fromJson(Test14.class, json);
+    Test14 res2 = Janson.fromJson(Test14.class, json);
     assertThat("bar is 42", res2.bar == 42);
   }
 
@@ -293,12 +292,12 @@ public class Tests {
   public void inputStreamWorks() {
     String src = "{\"x\": 42}";
     InputStream is = new ByteArrayInputStream( src.getBytes() );
-    Map obj = Deserialize.fromJson(is);
+    Map obj = Janson.fromJson(is);
 
     assertThat("x is 42", obj.get("x").equals(new BigDecimal(42)));
 
     is = new ByteArrayInputStream( src.getBytes() );
-    Test0 test0 =  Deserialize.fromJson(Test0.class, is);
+    Test0 test0 =  Janson.fromJson(Test0.class, is);
 
     assertThat("x is 42", test0.x == 42);
   }
@@ -307,12 +306,12 @@ public class Tests {
   public void outputStreamWorks() throws Exception {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     OutputStreamWriter writer = new OutputStreamWriter(out);
-    Serialize.toJson(new Test1(), writer);
+    Janson.toJson(new Test1(), writer);
     writer.flush();
 
 
     String json = new String(out.toByteArray());
-    Test1 after = Deserialize.fromJson(Test1.class, json);
+    Test1 after = Janson.fromJson(Test1.class, json);
 
 
     assertThat("a1 is 21", after.a1 == 21);
@@ -322,15 +321,15 @@ public class Tests {
   @Test(expected = RuntimeException.class)
   public void badEnum() {
     String src = "{\"foo\": \"BAR\"}";
-    Deserialize.fromJson(Test15.class, src);
+    Janson.fromJson(Test15.class, src);
   }
 
   @Test
   public void standardEnum() throws Exception {
     Test16 test16 = new Test16();
-    String src = Serialize.toJson(test16);
+    String src = Janson.toJson(test16);
 
-    Test16 test162 = Deserialize.fromJson(Test16.class, src);
+    Test16 test162 = Janson.fromJson(Test16.class, src);
 
     assertThat("equals", test16.foo == test162.foo);
   }
@@ -338,7 +337,7 @@ public class Tests {
   @Test
   public void parsingExponentialsWork() {
     String src = "{\"foo\": 10e+10, \"bar\": 1e-10, \"baz\": 1e10}";
-    Map m = Deserialize.fromJson(src);
+    Map m = Janson.fromJson(src);
     assertThat("is equal to the same", m.get("foo").equals(new BigDecimal("10e10")));
     assertThat("is equal to the same", m.get("bar").equals(new BigDecimal("1e-10")));
   }
@@ -347,7 +346,7 @@ public class Tests {
   @Test
   public void parsingFloatExponentialsWork() {
     String src = "{\"foo\": 2.5e4}";
-    Test17 m = Deserialize.fromJson(Test17.class, src);
+    Test17 m = Janson.fromJson(Test17.class, src);
 
     assertThat("Correct result", m.foo == 2.5e4f);
   }
@@ -355,7 +354,7 @@ public class Tests {
   @Test
   public void parseNull() {
     String src = "{\"foo\": null}";
-    Map m = Deserialize.fromJson(src);
+    Map m = Janson.fromJson(src);
     assertThat("is equal to the same", m.get("foo") == null);
   }
 
@@ -363,54 +362,54 @@ public class Tests {
   @Test( expected = RuntimeException.class )
   public void refusesToParseInvalidNull() {
     String src = "{\"foo\": nul}";
-    Deserialize.fromJson(src);
+    Janson.fromJson(src);
   }
 
   @Test( expected = RuntimeException.class )
   public void refusesToParseInvalidTrue() {
     String src = "{\"foo\": talse}";
-    Deserialize.fromJson(src);
+    Janson.fromJson(src);
   }
 
   @Test( expected = RuntimeException.class )
   public void refusesToParseInvalidFalse() {
     String src = "{\"foo\": frue}";
-    Deserialize.fromJson(src);
+    Janson.fromJson(src);
   }
 
   @Test( expected = RuntimeException.class )
   public void refusesToParseInvalidKeywords() {
     String src = "{\"foo\": bar}";
-    Deserialize.fromJson(src);
+    Janson.fromJson(src);
   }
 
   @Test( expected = RuntimeException.class )
   public void badUnicde() {
     String src = "{\"\\uabcq\": 42}";
-    Deserialize.fromJson(src);
+    Janson.fromJson(src);
   }
 
   @Test( expected = RuntimeException.class )
   public void syntaxError() {
     String src = "{\"foo\" 42}";
-    Deserialize.fromJson(src);
+    Janson.fromJson(src);
   }
 
 
   @Test( expected = RuntimeException.class )
   public void badEscapeCharacter() {
     String src = "{\"f\\oo\" 42}";
-    Deserialize.fromJson(src);
+    Janson.fromJson(src);
   }
 
   @Test
   public void canProperlyHide() throws Exception {
     Test18 t18 = new Test18();
     t18.foo = 42;
-    String json = Serialize.toJson(t18);
+    String json = Janson.toJson(t18);
     assertThat("{}", json.equals("{}"));
 
-    Test18 res = Deserialize.fromJson(Test18.class, "{\"foo\": 42}");
+    Test18 res = Janson.fromJson(Test18.class, "{\"foo\": 42}");
 
     assertThat("foo is null", res.foo == null);
   }

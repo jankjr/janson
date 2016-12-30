@@ -1,7 +1,6 @@
 package dk.jankjr.janson;
 
 import dk.jankjr.janson.annotations.*;
-import dk.jankjr.janson.writers.StringBufferWriter;
 import dk.jankjr.janson.writers.Writer;
 
 import java.io.IOException;
@@ -11,7 +10,7 @@ import java.util.*;
 /**
  * Created by jankjr on 23/12/2016.
  */
-final public class Serialize {
+final class Serialize {
   static private void string(String original, Writer buff) throws IOException {
     buff.append("\"");
     for (int i = 0 ; i < original.length() ;){
@@ -36,16 +35,9 @@ final public class Serialize {
     buff.append("\"");
   }
 
-  static public String toJson(Object obj) throws Exception {
-    StringBufferWriter writer = new StringBufferWriter();
-    toJson(obj, writer);
-    return writer.getBuffer().toString();
-  }
-
   static public Writer toJson(Object obj, Writer writer) throws Exception {
     objectToJson(obj, writer, null);
     return writer;
-
   }
 
   private static boolean fieldIsExposed(Field field) {return field.getAnnotation(Hidden.class) == null || field.getAnnotation(Hidden.class).deserization() == Visibility.EXPOSED;}
