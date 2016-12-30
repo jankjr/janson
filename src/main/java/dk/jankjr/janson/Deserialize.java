@@ -338,6 +338,9 @@ final public class Deserialize {
         throw new RuntimeException("Invalid Json Input");
       }
     }
+    if(!Reader.isNextDelimiter(stream)){
+      throw new RuntimeException("Invalid keyword");
+    }
     return true;
   }
 

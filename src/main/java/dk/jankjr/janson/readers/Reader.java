@@ -40,4 +40,9 @@ public interface Reader {
 
   char peek() throws IOException;
   void advance() throws IOException;
+
+  static boolean isNextDelimiter(Reader stream) throws IOException {
+    char c = stream.peek();
+    return Character.isWhitespace(c) || c == ',' || c == '}' || c == ']';
+  }
 }
