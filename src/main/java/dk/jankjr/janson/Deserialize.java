@@ -7,6 +7,7 @@ import dk.jankjr.janson.readers.StringReader;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -49,17 +50,19 @@ final public class Deserialize {
 
     while(parseKeyValuePair(cls, stream, inst, parentField)){
       Reader.skipWhiteSpace(stream);
+
       if(!Reader.advanceIf(stream, ',')){
         break;
       }
+
       Reader.skipWhiteSpace(stream);
     }
+
     for(Field f : cls.getFields()){
-      NotUndefined req = f.getAnnotation(NotUndefined.class);
-      if(req != null) {
-        if(f.get(inst) == null){
-          throw req.value().getConstructor(String.class).newInstance(getMissingFieldMsg(f));
-        }
+      NotUndefined notDefinedAnnotation = f.getAnnotation(NotUndefined.class);
+      if(notDefinedAnnotation != null && f.get(inst) == null) {
+        Constructor<? extends Exception> cons = notDefinedAnnotation.value().getConstructor(String.class);
+        throw cons.newInstance(getMissingFieldMsg(f));
       }
     }
 
