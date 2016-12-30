@@ -65,7 +65,7 @@ Janson does not require any special annotations when parsing data, and by defaul
 
 janson supports some primitives for constraining the fields of the schema.
 
-#### @NotUndefined
+#### `@NotUndefined`
 
 By default janson will only deserialize the fields currently in the json, this means that missing fields are simply left to their default value.
 
@@ -84,7 +84,7 @@ public class User {
 By default a RuntimeException is thrown,however by providing a value to the annotation any class can be used as long as this Exception has a constructor with a String parameter.
 
 
-#### @Hidden
+#### `@Hidden`
 
 Sometimes fields should never be serialized from outside sources, or ever serialized to json, in this case fields can be marked as `@Hidden`
 
@@ -107,7 +107,7 @@ public class User {
 }
 ```
 
-#### @AttributeName
+#### `@AttributeName`
 
 Lastly sometimes the fields of the input json objects differ from the field names on the Java class:
 
@@ -144,9 +144,9 @@ public class Request {
 }
 ```
 
-This is very important, because without a schema janson will serialize all objects to HashMaps.
+Because of how java generics work, it is important to mark fields with the `@CollectionType` annotation to ensure that the json will deserialize to the correct model, without a Class janson will serialize all objects to HashMaps.
 
-You can also use json objects themselves as dynamic maps instead of classes. And these also support the CollectionType to correction deserialize classes. 
+You can also use json objects as collections, this allows you to serialize json into typesafe maps. 
 
 ```java
 public class Request {  
@@ -155,7 +155,7 @@ public class Request {
 }
 ```
 
-By default, the keys can be used directly as strings, it is also possible to use other keytypes, as long as you provide a `KeyType` annotation. `KeyType` requires class that extends the `JansonKeySerializer` interface as input.
+By default keys are serialized to `String` types, as json fields names can only be strings. But it is possible serialize the to other types from a string, as long as you provide a `KeyType` annotation. `KeyType` takes a `JansonKeySerializer` class. (Which is actually just a specialization of the `Serializer` interface).
 
 Below is an example of how to specify a specific format for keys in a map.
 
@@ -163,10 +163,10 @@ Below is an example of how to specify a specific format for keys in a map.
 public class Request {  
   class public static StringToInteger implements JansonKeySerializer<Integer> {
     Integer fromJson(String src) { return Integer.parseString(src); }
-    String toJson(Integer inst) { return Integer.toString(inst); }
+    String toJson(Integer inst) { return inst.toString(); }
   }
 
-  @KeyType(StringToInteger.class)
+  @KeyType(Request.StringToInteger.class)
   @CollectionType(Action.class)
   Map<Integer, Action> actions;
 }
@@ -182,18 +182,18 @@ public class Request {
 }
 ```
 
-Look in the `dk.jankjr.janson.keytypes` package to see the predefined types.
+Look in the `dk.jankjr.janson.keytypes` package to see all predefined types.
 
 ### ValueTypes
 
-Sometimes strings are not simply strings nor numbers simply numbers, and custom serialization logic is often needed.
+Sometimes strings are not simply strings, nor are numbers simply numbers, but rather some a representation of types from some domain. One example could be a date, a date can be serialize to, and deserialized from a some textual representation into a Date object. 
 
-For this reason janson supports ValueTypes.
+For this reason janson supports `ValueType`s.
 
-ValueTypes are classes marked with the `ValueType` annotation. It, like KeyType, takes a JansonSerializer class as an argument.
+`ValueType` is an annotation that takes two parameters, a `value` parameter, a class that implements the `Serializer` interface.
 
 ```java
-class AWSCognitoIdSerializer implements JansonSerializer<AWSCognitoId, String> {
+class AWSCognitoIdSerializer implements Serializer<AWSCognitoId, String> {
   AWSCognitoId fromJson(String src) { return new AWSCognitoId(src); }
   String toJson(AWSCognitoId inst) { return inst.toJson(); }
 }
@@ -218,18 +218,20 @@ public class AWSCognitoId {
 
 As you can see, using this feature you can add an additional control over how objects are serialized.
 
-Keep in mind that janson will deserialize numbers to best fit, which means that numbers are deserialized to `BigDecimal` types. This might not always be the intended behavior, therefore it is possible to specify the type of the values that ValueTypes are serialized from by setting the `from` class.
+Keep in mind that janson will deserialize numbers to best fit, which means that numbers are deserialized to `BigDecimal` types and maps are serialized to `HashMap`s. This might not always be the intended behavior, therefore it is possible to specify the type of the values that ValueTypes are serialized from by setting the `from` parameter of the `ValueType`.
 
 ```java
 @ValueType(value = SomeFromFloatValueDeserializer.class, from = Float.class)
 ... 
 ```
 
+As you can see, you can actually perform some very interesting mapping between json and java classes using this feature.
+
 ### Enums
 
 Enums are a useful feature in Java, and janson will happily map json strings directly to Enum instances.
 
-The default behavior will map enums directly by name. This means that an enum definition:
+The default behavior will map enums directly by name using the built in `valueOf` method on Enums. This means that an enum definition:
 
 ```java
 public enum AnimalType {
@@ -237,27 +239,26 @@ public enum AnimalType {
 }
 ```
 
-Would only accept the json strings "CAT", "DOG", "BIRD". If none of the 
+Would only accept the json strings "CAT", "DOG", "BIRD". If an enum could not be initialized, that is, the json contains the string `"PENGUIN"` the janson will throw an exception. This behavior can be overwritten or extended by creating a custom `EnumSerializer`, and marking the enum class with `EnumType`.
 
-Sometimes it is usefull to have a more domain specific mapping, by marking the Enum class with the @EnumType annotation.
+Sometimes it is usefull to have a more domain specific mapping, like mapping a integer to an enum instance, by marking the class with the `@EnumType(...)` annotation.
 
 ```java
-@EnumType(value = EvenOrOdd.Serialization.class, from = Integer.class)
-public enum EvenOrOdd {
-  EVEN, ODD;
+@EnumType(value = OneTwoMany.Serialization.class, from = Integer.class)
+public enum OneTwoMany {
+  NONE, ONE, TWO, MANY;
 
   public static class Serialization implements EnumSerializer<Integer> {
     @Override
     public Enum fromJson(Class enumClass, Integer input) {
-      return input % 2 == 0 ? EvenOrOdd.EVEN : EvenOrOdd.ODD;
+      return input <= 0 ? NONE : input == 1 ? ONE : input == 2 ? TWO : MANY;
     }
     @Override
     public Integer toJson(Enum input) {
-      return input == EVEN ? 2 : 1;
+      return input == NONE ? 0 : input == ONE ? 1 : INPUT == TWO : 2 ? 3;
     }
   }
 }
 ```
 
-Note: specifying a `from` attribute will make the `Deserialize` use the closest fits the source. Which for numbers would be a `BigDecimal`, this behavior mirrors `ValueType`.
-
+Note: like `ValueType`, the `from` parameter will make the `Deserialize.fromJson` use the closest fits the source. Which for numbers would be a `BigDecimal`, and maps to `HashMap`, this behavior mirrors how the `ValueType`.
